@@ -4,9 +4,10 @@
 	import Input from '$lib/components/Input.svelte';
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	import Button from '$lib/components/Button.svelte';
-	import { user } from '$lib/stores/UserStore';
+	import userData from '$lib/stores/UserStore';
 	import { getUserCred } from '$lib/services/apiService';
 
+	let error = false;
 	let username = '';
 	let password = '';
 	let apiKey = '';
@@ -14,18 +15,25 @@
 
 	const STORAGE_KEY = 'savedAuthData';
 	const isBrowser = typeof window !== 'undefined';
+	
 
 	const data = isBrowser ? JSON.parse(localStorage.getItem(STORAGE_KEY)) : null;
 
 	if (isBrowser && data) {
-		user.set({ isLoggedIn: true, ...data });
+		userData.set({ isLoggedIn: true, ...data });
 		goto('/');
 	}
 
 	const handleLogin = async () => {
+		error = false;
 		const res = await getUserCred(username, password, apiKey);
-		user.set({ isLoggedIn: true, ...res });
-		isBrowser && localStorage.setItem(STORAGE_KEY, JSON.stringify(res));
+		if(res.id) {
+			userData.set({ isLoggedIn: true, ...res });
+			isBrowser && localStorage.setItem(STORAGE_KEY, JSON.stringify(res));
+			goto('/');
+		}else{
+			error = true;
+		}
 	};
 </script>
 
@@ -46,6 +54,10 @@
 		</div>
 
 		<Button label="Login" handle={handleLogin} />
+		{#if error}
+			<Text tag="span" color='red' label='User not found. Check your login data' />
+		{/if}
+
 	</form>
 </div>
 
