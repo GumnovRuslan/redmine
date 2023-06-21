@@ -1,6 +1,15 @@
 <script>
+	import { onMount, onDestroy } from 'svelte';
 	export let title;
 	export let handleCloseModal = () => {};
+
+	onMount(() => {
+		document.querySelector('body').style.overflow = 'hidden';
+	});
+
+	onDestroy(() => {
+		document.querySelector('body').style.overflow = 'auto';
+	});
 </script>
 
 <div class="modal">
@@ -33,6 +42,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		padding: 50px;
 
 		&__backdrop {
 			position: absolute;
@@ -50,12 +60,18 @@
 			border: 1px solid #d6d6d6;
 			box-shadow: 4px 4px 15px 1px rgba(0, 0, 0, 0.05);
 			border-radius: 12px;
+			max-width: 1024px;
+			height: fit-content;
+			max-height: 100%;
 		}
 
 		&__inner-wrapper {
 			display: flex;
 			flex-direction: column;
 			gap: 20px;
+			max-height: 70vh;
+			overflow: auto;
+			padding-right: 15px;
 		}
 
 		&__controls {

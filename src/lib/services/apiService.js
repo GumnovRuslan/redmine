@@ -20,6 +20,20 @@ export const getIssues = async (apiKey) =>
 		.then((res) => res.json())
 		.then((res) => res.issues);
 
+export const getIssue = async (apiKey, issue_id) =>
+	await fetch('/api/get-issue', {
+		method: 'POST',
+		body: JSON.stringify({
+			apiKey,
+			issue_id
+		}),
+		headers: {
+			'content-type': 'application/json'
+		}
+	})
+		.then((res) => res.json())
+		.then((res) => res);
+
 export const getTimeEntries = async (apiKey, issueId, userId, offset, limit) =>
 	await fetch('/api/get-time-entries', {
 		method: 'POST',

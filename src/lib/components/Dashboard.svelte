@@ -6,19 +6,21 @@
 	import Popup from '$lib/components/Popup.svelte';
 	import TrackTimeModal from '$lib/components/Modals/TrackTimeModal.svelte';
 	import TicketDetails from './Modals/TicketDetails.svelte';
+	import TicketTimeEntries from './Modals/TicketTimeEntries.svelte';
 	import { getIssues } from '$lib/services/apiService';
 
 	let popupMessage = '';
 	let isShowingTicketDetails = false;
+	let isShowingTicketTimeEntries = false;
 
 	$: issues = [];
 	$: activeIssue = null;
-	$: activeIssueDetails = null;
+	$: activeIssueModal = null;
 	$: showPopup = false;
 	$: isShowingModal = false;
 
-	onMount(async () => {
-		issues = await getIssues($userData.localApiKey);
+	onMount(() => {
+		updateIssues();
 	});
 
 	let timerValue = 0;
@@ -28,6 +30,10 @@
 		showPopup = false;
 		popupMessage = '';
 		timerValue = 0;
+	};
+
+	const updateIssues = async () => {
+		issues = await getIssues($userData.localApiKey);
 	};
 
 	const handleActiveIssue = (issue) => {
@@ -48,7 +54,9 @@
 		timerValue = 0;
 		showPopup = true;
 		popupMessage = message;
-		issues = await updateIssues($userData.localApiKey);
+		const issues = await updateIssues($userData.localApiKey);
+
+		console.log('issues - > ', issues);
 
 		setTimeout(() => {
 			clearTimerSession();
@@ -57,7 +65,12 @@
 
 	const toggleTicketDetails = async (issue) => {
 		isShowingTicketDetails = !isShowingTicketDetails;
-		activeIssueDetails = issue;
+		activeIssueModal = issue;
+	};
+
+	const toggleTicketTimeEntries = async (issue) => {
+		isShowingTicketTimeEntries = !isShowingTicketTimeEntries;
+		activeIssueModal = issue;
 	};
 
 	const toggleShowingModal = () => {
@@ -67,7 +80,12 @@
 
 <div class="dashboard">
 	<div class="dashboard__wrapper">
-		<TicketList handler={handleActiveIssue} {toggleTicketDetails} {issues} />
+		<TicketList
+			handler={handleActiveIssue}
+			{toggleTicketDetails}
+			{toggleTicketTimeEntries}
+			{issues}
+		/>
 
 		{#if activeIssue}
 			<Timer
@@ -87,11 +105,19 @@
 			/>
 		{/if}
 
-		{#if activeIssueDetails && isShowingTicketDetails}
+		{#if activeIssueModal && isShowingTicketDetails}
 			<TicketDetails
 				titleHeading="Issue details"
-				issue={activeIssueDetails}
+				issueId={activeIssueModal.id}
 				handlerClose={toggleTicketDetails}
+			/>
+		{/if}
+
+		{#if activeIssueModal && isShowingTicketTimeEntries}
+			<TicketTimeEntries
+				titleHeading="Ticket time entries"
+				issueId={activeIssueModal.id}
+				handlerClose={toggleTicketTimeEntries}
 			/>
 		{/if}
 	</div>

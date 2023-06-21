@@ -1,6 +1,6 @@
 <script>
 	import formatTime from '../helpers/formatTime';
-	import { onDestroy } from 'svelte';
+	import { afterUpdate, onDestroy } from 'svelte';
 	export let handle = () => {};
 	export let time;
 	export let activeIssueName;
@@ -11,8 +11,8 @@
 
 	const startTimer = () => {
 		interval = setInterval(() => {
-			time += 1000;
-		}, 1);
+			time += 10;
+		}, 10);
 	};
 
 	const stopTimer = () => {
@@ -21,21 +21,18 @@
 	};
 
 	const saveTimer = () => {
+		stopTimer();
 		handle();
 	};
 
 	$: formattedTime = formatTime(time);
 
-	onDestroy(() => {
-		// pause();
-	});
-
 	const toggleStatusTimer = () => {
 		isButtonPlayActive = !isButtonPlayActive;
 
-		if(isButtonPlayActive) {
+		if (isButtonPlayActive) {
 			buttonConditionStatus = 'pause';
-		}else if(!isButtonPlayActive && !!time) {
+		} else if (!isButtonPlayActive && !!time) {
 			buttonConditionStatus = '';
 		}
 

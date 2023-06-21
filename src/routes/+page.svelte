@@ -4,7 +4,6 @@
 	import UserBar from '$lib/components/UserBar.svelte';
 	import userData from '$lib/stores/UserStore';
 	import Dashboard from '../lib/components/Dashboard.svelte';
-
 </script>
 
 <PageWrapper>
