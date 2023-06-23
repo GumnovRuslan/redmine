@@ -8,7 +8,9 @@
 	import TicketDetails from './Modals/TicketDetails.svelte';
 	import TicketTimeEntries from './Modals/TicketTimeEntries.svelte';
 	import { getIssues } from '$lib/services/apiService';
+	import TimerStore from '../stores/TimerStore';
 
+	let timerValue = null;
 	let popupMessage = '';
 	let isShowingTicketDetails = false;
 	let isShowingTicketTimeEntries = false;
@@ -18,18 +20,20 @@
 	$: activeIssueModal = null;
 	$: showPopup = false;
 	$: isShowingModal = false;
+	$: timeSpent = timerValue ? (timerValue / (1000 * 60 * 60)).toFixed(3) : null;
 
-	onMount(() => {
-		updateIssues();
+	onMount(async () => {
+		await updateIssues();
+		if ($TimerStore.taskId) {
+			activeIssue = issues.find((item) => item.id === $TimerStore.taskId);
+			timerValue = TimerStore.getTime();
+		}
 	});
-
-	let timerValue = 0;
-	$: timeSpent = (timerValue / (1000 * 60 * 60)).toFixed(3);
 
 	const clearTimerSession = () => {
 		showPopup = false;
 		popupMessage = '';
-		timerValue = 0;
+		timerValue = null;
 	};
 
 	const updateIssues = async () => {
@@ -37,13 +41,14 @@
 	};
 
 	const handleActiveIssue = (issue) => {
-		if (timeSpent != 0 && issue.id != activeIssue.id) {
+		if (!!timeSpent && issue?.id != activeIssue?.id) {
 			const confirmText =
 				'Switching ticket clear an existing timer, are you sure you want to switch?';
 
 			if (confirm(confirmText)) {
 				activeIssue = issue;
 				clearTimerSession();
+				TimerStore.clear();
 			}
 		} else {
 			activeIssue = issue;
@@ -54,9 +59,7 @@
 		timerValue = 0;
 		showPopup = true;
 		popupMessage = message;
-		const issues = await updateIssues($userData.localApiKey);
-
-		console.log('issues - > ', issues);
+		await updateIssues($userData.localApiKey);
 
 		setTimeout(() => {
 			clearTimerSession();
@@ -90,6 +93,7 @@
 		{#if activeIssue}
 			<Timer
 				activeIssueName={activeIssue.subject}
+				activeIssueId={activeIssue.id}
 				bind:time={timerValue}
 				handle={toggleShowingModal}
 			/>

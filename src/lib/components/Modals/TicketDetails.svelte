@@ -50,6 +50,9 @@
 				</div>
 			</div>
 		{/if}
+		{#if !attachments.length}
+			<p>No details</p>
+		{/if}
 	{:else}
 		<p>LOADING ...</p>
 	{/if}

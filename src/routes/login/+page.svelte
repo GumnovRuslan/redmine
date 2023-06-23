@@ -15,7 +15,6 @@
 
 	const STORAGE_KEY = 'savedAuthData';
 	const isBrowser = typeof window !== 'undefined';
-	
 
 	const data = isBrowser ? JSON.parse(localStorage.getItem(STORAGE_KEY)) : null;
 
@@ -27,52 +26,87 @@
 	const handleLogin = async () => {
 		error = false;
 		const res = await getUserCred(username, password, apiKey);
-		if(res.id) {
+		if (res.id) {
 			userData.set({ isLoggedIn: true, ...res });
 			isBrowser && localStorage.setItem(STORAGE_KEY, JSON.stringify(res));
 			goto('/');
-		}else{
+		} else {
 			error = true;
 		}
 	};
 </script>
 
-<div class="container">
-	<Text tag="h1" label="Log in" />
+<div class="login">
+	<div class="login__wrapper">
+		<div class="login__form">
+			<Text tag="h1" label="Log in" />
+			<div class="login__form-content">
+				{#if loginViaApiKey}
+					<Input bind:value={apiKey} placeholder="api key" />
+				{:else}
+					<Input bind:value={username} placeholder="username" />
+					<Input bind:value={password} placeholder="password" type="password" />
+				{/if}
 
-	<form>
-		{#if loginViaApiKey}
-			<Input bind:value={apiKey} placeholder="api key" />
-		{:else}
-			<Input bind:value={username} placeholder="username" />
-			<Input bind:value={password} placeholder="password" type="password" />
-		{/if}
+				<!-- svelte-ignore a11y-label-has-associated-control -->
+				<label class="login__form-toggle">
+					<Text color="#7f818b" tag="span" label="login using apiKey?" />
+					<Checkbox bind:checked={loginViaApiKey} />
+				</label>
 
-		<div>
-			<Text tag="span" label="login using apiKey?" />
-			<Checkbox label="use apiKey" bind:checked={loginViaApiKey} />
+				<Button label="Login" handle={handleLogin} />
+				{#if error}
+					<Text
+						tag="span"
+						styleProps="text-align: center; font-size: 14px; font-weight: 500;"
+						color="red"
+						label="User not found. Check your login data"
+					/>
+				{/if}
+			</div>
 		</div>
-
-		<Button label="Login" handle={handleLogin} />
-		{#if error}
-			<Text tag="span" color='red' label='User not found. Check your login data' />
-		{/if}
-
-	</form>
+	</div>
 </div>
 
 <style lang="scss">
-	.container {
+	@import '../../lib/global.css';
+
+	.login {
 		width: 400px;
 		margin: auto;
-		display: flex;
 		flex-direction: column;
 		align-items: center;
-	}
-	form {
-		width: 100%;
-		display: grid;
-		gap: 25px;
-		justify-items: stretch center;
+		height: 90vh;
+		display: flex;
+		justify-content: center;
+
+		&__wrapper {
+			width: 100%;
+		}
+
+		&__form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 50px;
+		}
+
+		&__form-content {
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
+
+		&__form-toggle {
+			width: fit-content;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+
+			font-size: 14px;
+			font-weight: 500;
+		}
 	}
 </style>

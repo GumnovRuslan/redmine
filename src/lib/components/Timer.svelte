@@ -1,31 +1,64 @@
 <script>
+	import { onMount } from 'svelte';
 	import formatTime from '../helpers/formatTime';
-	import { afterUpdate, onDestroy } from 'svelte';
+	import TimerStore from '../stores/TimerStore';
+
 	export let handle = () => {};
 	export let time;
 	export let activeIssueName;
+	export let activeIssueId;
 
 	let interval = null;
 	let isButtonPlayActive = false;
 	let buttonConditionStatus = '';
 
+	$: formattedTime = formatTime(time);
+
+	$: {
+		if (time === null) {
+			stopTimer();
+			buttonConditionStatus = '';
+			isButtonPlayActive = false;
+		}
+	}
+
+	onMount(() => {
+		if (!!time) {
+			console.log('STATUS = > ', $TimerStore.status);
+			if ($TimerStore.status === 'init') {
+				toggleStatusTimer();
+			}
+
+			if ($TimerStore.status === 'pause') {
+				isButtonPlayActive = false;
+				buttonConditionStatus = '';
+			}
+		}
+	});
+
 	const startTimer = () => {
+		if ($TimerStore.status !== 'init') {
+			TimerStore.start(activeIssueId);
+		}
+
 		interval = setInterval(() => {
 			time += 10;
 		}, 10);
 	};
 
 	const stopTimer = () => {
-		clearInterval(interval);
-		interval = null;
+		if (!!interval) {
+			TimerStore.pause();
+			clearInterval(interval);
+			interval = null;
+		}
 	};
 
-	const saveTimer = () => {
+	const turnOffTimer = () => {
 		stopTimer();
 		handle();
+		TimerStore.clear();
 	};
-
-	$: formattedTime = formatTime(time);
 
 	const toggleStatusTimer = () => {
 		isButtonPlayActive = !isButtonPlayActive;
@@ -46,12 +79,14 @@
 		<div class="timer__task-title">{activeIssueName}</div>
 		<div class="timer__controls">
 			<p class="timer__time-value">{formattedTime}</p>
-			<div on:click={toggleStatusTimer} class="timer__btn {buttonConditionStatus}">
-				<span />
+			<div class="timer__btns">
+				<div on:click={toggleStatusTimer} class="timer__btn {buttonConditionStatus}">
+					<span />
+				</div>
+				{#if !!time && !interval && buttonConditionStatus != 'pause'}
+					<div on:click={turnOffTimer} class="timer__btn confirm"><span /></div>
+				{/if}
 			</div>
-			{#if !!time && !interval}
-				<div on:click={saveTimer} class="timer__btn confirm"><span /></div>
-			{/if}
 		</div>
 	</div>
 </div>
@@ -104,9 +139,16 @@
 		&__controls {
 			display: flex;
 			align-items: center;
-			gap: 20px;
+			gap: 5px;
 			width: 100%;
 			justify-content: space-between;
+			flex-wrap: wrap;
+		}
+
+		&__btns {
+			display: flex;
+			align-items: center;
+			gap: 20px;
 		}
 
 		&__time-value {
@@ -125,8 +167,8 @@
 		}
 
 		&__btn {
-			width: 40px;
-			height: 40px;
+			min-width: 40px;
+			min-height: 40px;
 			display: flex;
 			border-radius: 50%;
 			overflow: hidden;
@@ -171,7 +213,6 @@
 
 				span {
 					width: 4px;
-					height: 45%;
 					background: #428ded;
 					box-shadow: 8px 0 0px 0 #428ded;
 					margin-left: -7px;

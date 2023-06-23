@@ -14,7 +14,9 @@ const isBrowser = typeof window !== 'undefined';
 const data = isBrowser ? JSON.parse(localStorage.getItem(STORAGE_KEY)) : null;
 
 if (isBrowser && !data) {
-	window.location.href = '/login';
+	if (window.location.pathname != '/login') {
+		window.location.href = '/login';
+	}
 } else {
 	user.set({ isLoggedIn: true, ...data });
 }
