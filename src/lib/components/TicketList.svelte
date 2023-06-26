@@ -1,6 +1,7 @@
 <script>
 	import TicketItem from './TicketItem.svelte';
 	export let issues;
+	export let activeItemId;
 	export let handler = () => {};
 	export let toggleTicketDetails = () => {};
 	export let toggleTicketTimeEntries = () => {};
@@ -14,23 +15,24 @@
 	};
 </script>
 
-<div class="ticketList">
-	<div class="ticketList__wrapper">
-		<p class="ticketList__title">Ticket</p>
-		<div class="ticketList__items">
-			{#if issues}
+{#if !!issues.length}
+	<div class="ticketList">
+		<div class="ticketList__wrapper">
+			<p class="ticketList__title">Ticket</p>
+			<div class="ticketList__items">
 				{#each issues as issue}
 					<TicketItem
 						handler={() => handler(issue)}
 						showingTicketTimeEntries={() => showingTicketTimeEntries(issue)}
 						showDetails={() => showDetails(issue)}
 						{issue}
+						activeItemId={activeItemId == issue.id ? true : false}
 					/>
 				{/each}
-			{/if}
+			</div>
 		</div>
 	</div>
-</div>
+{/if}
 
 <style lang="scss">
 	.ticketList {

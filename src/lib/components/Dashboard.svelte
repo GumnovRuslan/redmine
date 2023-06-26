@@ -9,6 +9,7 @@
 	import TicketTimeEntries from './Modals/TicketTimeEntries.svelte';
 	import { getIssues } from '$lib/services/apiService';
 	import TimerStore from '../stores/TimerStore';
+	import Pagination from './Pagination.svelte';
 
 	let timerValue = null;
 	let popupMessage = '';
@@ -22,7 +23,22 @@
 	$: isShowingModal = false;
 	$: timeSpent = timerValue ? (timerValue / (1000 * 60 * 60)).toFixed(3) : null;
 
+	const itemsPerPage = 3;
+	let currentPage = 1;
+	let prevcurrentPage = null;
+	let paginacationOffset = currentPage * itemsPerPage - itemsPerPage;
+	$: paginationPagesCount = 0;
+
+	$: {
+		if (!!prevcurrentPage && currentPage != prevcurrentPage) {
+			updateIssues();
+			prevcurrentPage = currentPage;
+		}
+	}
+
 	onMount(async () => {
+		prevcurrentPage = currentPage;
+
 		await updateIssues();
 		if ($TimerStore.taskId) {
 			activeIssue = issues.find((item) => item.id === $TimerStore.taskId);
@@ -37,7 +53,10 @@
 	};
 
 	const updateIssues = async () => {
-		issues = await getIssues($userData.localApiKey);
+		paginacationOffset = currentPage * itemsPerPage - itemsPerPage;
+		const response = await getIssues($userData.localApiKey, paginacationOffset, itemsPerPage);
+		issues = response.issues;
+		paginationPagesCount = Math.ceil(response.total_count / itemsPerPage);
 	};
 
 	const handleActiveIssue = (issue) => {
@@ -59,6 +78,7 @@
 		timerValue = 0;
 		showPopup = true;
 		popupMessage = message;
+		activeIssue = null;
 		await updateIssues($userData.localApiKey);
 
 		setTimeout(() => {
@@ -83,12 +103,19 @@
 
 <div class="dashboard">
 	<div class="dashboard__wrapper">
-		<TicketList
-			handler={handleActiveIssue}
-			{toggleTicketDetails}
-			{toggleTicketTimeEntries}
-			{issues}
-		/>
+		<div class="dashboard__list-wrapper">
+			<TicketList
+				handler={handleActiveIssue}
+				{toggleTicketDetails}
+				{toggleTicketTimeEntries}
+				{issues}
+				activeItemId={activeIssue?.id || null}
+			/>
+
+			{#if paginationPagesCount > 1}
+				<Pagination bind:currentPage totalPages={paginationPagesCount} {itemsPerPage} />
+			{/if}
+		</div>
 
 		{#if activeIssue}
 			<Timer
@@ -127,7 +154,8 @@
 	</div>
 </div>
 
-<!-- <Popup isShow={showPopup} title="Notification" text={popupMessage} /> -->
+<Popup isShow={showPopup} title="Notification" text={popupMessage} />
+
 <style lang="scss">
 	.dashboard {
 		padding-top: 30px;
@@ -136,6 +164,12 @@
 			display: grid;
 			grid-template-columns: 70% 25%;
 			gap: 5%;
+		}
+
+		&__list-wrapper {
+			display: flex;
+			flex-direction: column;
+			gap: 30px;
 		}
 	}
 </style>

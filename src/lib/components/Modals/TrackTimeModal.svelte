@@ -6,6 +6,7 @@
 	import userData from '$lib/stores/UserStore';
 	import { getEntryActivities, setTimeEntries } from '$lib/services/apiService';
 	import Modal from './Modal.svelte';
+	import TimerStore from '../../stores/TimerStore';
 
 	export let timeSpent;
 	export let activeIssue;
@@ -25,14 +26,6 @@
 		activeActivity = activities[0]?.id;
 	});
 
-	const handleCloseModal = () => {
-		const confirmText = 'Are you sure what you want close ?';
-
-		if (confirm(confirmText)) {
-			handlerClose();
-		}
-	};
-
 	async function handleClickCreate() {
 		const timeEntry = {
 			issue_id: activeIssue.id,
@@ -46,12 +39,16 @@
 		if (response.status) {
 			handlerClose();
 			handler(response.responseMessage);
+			TimerStore.clear();
 		}
 	}
 </script>
 
 {#if !!activities.length}
-	<Modal {handleCloseModal} title={`Save spent time on ticket : ${titleHeading}`}>
+	<Modal
+		handleCloseModal={() => handlerClose()}
+		title={`Save spent time on ticket : ${titleHeading}`}
+	>
 		<Input bind:value={dateSpent} type="date" placeholder="Date spent: " />
 		<Input bind:value={timeSpent} placeholder="Time spent: (Hours) " />
 		<Input bind:value={comment} placeholder="Comment: " />
@@ -59,7 +56,7 @@
 
 		<svelte:fragment slot="controls">
 			<Button handle={handleClickCreate} label="Create" />
-			<Button handle={handleCloseModal} label="Cancel" />
+			<Button handle={() => handlerClose()} label="Cancel" />
 		</svelte:fragment>
 	</Modal>
 {/if}

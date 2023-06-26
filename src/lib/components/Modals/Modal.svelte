@@ -84,7 +84,7 @@
 			display: flex;
 			flex-direction: column;
 			gap: 20px;
-			padding: 50px 0;
+			padding: 35px 0;
 		}
 
 		&__heading {

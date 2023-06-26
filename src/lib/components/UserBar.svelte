@@ -11,15 +11,17 @@
 	}
 </script>
 
-<section class="userbar">
-	<div class="userbar__wrapper">
-		<div class="userbar__content">
-			<p class="userbar__title">{$userData.firstname} {$userData.lastname}</p>
-			<p class="userbar__text">{$userData.mail}</p>
+{#if $userData.firstname}
+	<section class="userbar">
+		<div class="userbar__wrapper">
+			<div class="userbar__content">
+				<p class="userbar__title">{$userData.firstname} {$userData.lastname}</p>
+				<p class="userbar__text">{$userData.mail}</p>
+			</div>
+			<Button variant="hoverRed" label="Logout" handle={handleButtonLogout} />
 		</div>
-		<Button variant="hoverRed" label="Logout" handle={handleButtonLogout} />
-	</div>
-</section>
+	</section>
+{/if}
 
 <style lang="scss">
 	.userbar {

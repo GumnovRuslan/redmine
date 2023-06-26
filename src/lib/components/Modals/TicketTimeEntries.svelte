@@ -1,5 +1,5 @@
 <script>
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import userData from '$lib/stores/UserStore';
 	import Modal from './Modal.svelte';
 	import Pagination from '$lib/components/Pagination.svelte';
@@ -70,7 +70,7 @@
 		{/if}
 	</div>
 	<svelte:fragment slot="controls">
-		{#if !!issueTimeEntriesCount && issueTimeEntriesCount > itemsPerPage}
+		{#if !!issueTimeEntriesCount && issueTimeEntriesCount > 1}
 			<Pagination bind:currentPage totalPages={issueTimeEntriesCount} {itemsPerPage} />
 		{/if}
 	</svelte:fragment>

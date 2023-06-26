@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import formatTime from '../helpers/formatTime';
-	import TimerStore from '../stores/TimerStore';
+	import TimerStore, { statusEnum } from '../stores/TimerStore';
 
 	export let handle = () => {};
 	export let time;
@@ -24,21 +24,33 @@
 
 	onMount(() => {
 		if (!!time) {
-			console.log('STATUS = > ', $TimerStore.status);
-			if ($TimerStore.status === 'init') {
+			if ($TimerStore.status === statusEnum.INIT) {
 				toggleStatusTimer();
 			}
 
-			if ($TimerStore.status === 'pause') {
+			if ($TimerStore.status === statusEnum.PAUSE) {
 				isButtonPlayActive = false;
 				buttonConditionStatus = '';
 			}
 		}
+
+		document.addEventListener('visibilitychange', function () {
+			if (document.visibilityState === 'hidden') {
+				TimerStore.set({
+					...$TimerStore,
+					time: time
+				});
+
+				TimerStore.saveToLocal();
+			} else {
+				time = TimerStore.getTime();
+			}
+		});
 	});
 
 	const startTimer = () => {
-		if ($TimerStore.status !== 'init') {
-			TimerStore.start(activeIssueId);
+		if ($TimerStore.status !== statusEnum.INIT) {
+			TimerStore.start(activeIssueId, time ? time : 0.1);
 		}
 
 		interval = setInterval(() => {
@@ -48,7 +60,7 @@
 
 	const stopTimer = () => {
 		if (!!interval) {
-			TimerStore.pause();
+			TimerStore.pause(time);
 			clearInterval(interval);
 			interval = null;
 		}
@@ -57,7 +69,6 @@
 	const turnOffTimer = () => {
 		stopTimer();
 		handle();
-		TimerStore.clear();
 	};
 
 	const toggleStatusTimer = () => {

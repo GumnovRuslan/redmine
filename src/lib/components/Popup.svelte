@@ -18,17 +18,18 @@
 		width: fit-content;
 		padding: 20px;
 		z-index: 1000;
-		background: white;
 		border-radius: 12px;
-		box-shadow: 0 0 8px 2px #ebebeb;
+		background: #428ded;
+		color: white;
+		padding: 15px 30px;
 		transform: translate(-50%);
-		transition: .3s ease;
+		transition: 0.3s ease;
 
 		&.active {
 			top: 20px;
 		}
 
-		&:not(&.active){
+		&:not(&.active) {
 			top: -10vh;
 		}
 
@@ -36,15 +37,19 @@
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			gap: 10px;
 		}
 
 		&__title {
 			text-transform: uppercase;
 			font-weight: 700;
+			font-size: 14px;
+			line-height: 14px;
 		}
 
 		&__text {
+			font-size: 14px;
+			line-height: 16px;
+			margin-top: 20px;
 		}
 	}
 </style>

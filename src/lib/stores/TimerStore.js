@@ -1,10 +1,16 @@
 import { writable } from 'svelte/store';
 
+export const statusEnum = {
+	INIT: 'init',
+	PAUSE: 'pause',
+	DEFAULT: ''
+};
+
 const defaultState = {
-	status: '',
+	status: statusEnum.DEFAULT,
 	taskId: null,
-	timerInitValue: '',
-	timerPauseValue: ''
+	time: '',
+	pauseValue: ''
 };
 const TIMER_KEY = 'timer';
 const timer = writable(defaultState);
@@ -15,87 +21,60 @@ if (timerLocalStorage) {
 	timer.set(timerLocalStorage);
 }
 
-const saveToLocal = () => {
+timer.saveToLocal = () => {
 	let valueStore = null;
 	timer.subscribe((value) => (valueStore = value));
-	console.log(valueStore);
-	if (valueStore.taskId != defaultState.taskId) {
-		console.log('1');
-		valueStore && localStorage.setItem('timer', JSON.stringify(valueStore));
+
+	if (valueStore.taskId != defaultState.taskId && valueStore.time > 0) {
+		if (valueStore.status === statusEnum.INIT) {
+			valueStore.pauseValue = new Date().getTime();
+		}
+		localStorage.setItem('timer', JSON.stringify(valueStore));
 	} else {
-		console.log('2');
 		localStorage.removeItem('timer');
 	}
 };
 
-if (isBrowser) {
-	document.addEventListener('visibilitychange', function () {
-		if (document.visibilityState === 'hidden') {
-			saveToLocal();
-		}
-
-		// if (document.visibilityState === 'visible') {
-		// 	if (JSON.parse === 'init') {
-		// 		// time = getTimer().time;
-		// 	}
-		// }
-	});
-}
-
-timer.start = (taskId) => {
-	var currentTime = new Date().getTime();
+timer.start = (taskId, timeValue) => {
 	var timerValue = null;
 	timer.subscribe((value) => (timerValue = value));
 
-	if (timerValue.status === 'pause') {
-		timer.set({
-			...timerValue,
-			status: 'init',
-			timerPauseValue: ''
-		});
-	} else {
-		timer.set({
-			status: 'init',
-			taskId,
-			timerInitValue: currentTime,
-			timerPauseValue: ''
-		});
-	}
+	timer.set({
+		status: statusEnum.INIT,
+		taskId,
+		time: timeValue
+	});
 
-	saveToLocal();
+	timer.saveToLocal();
 };
 
-timer.pause = () => {
-	var currentTime = new Date().getTime();
+timer.pause = (timeValue) => {
 	var timerValue = null;
 	timer.subscribe((value) => (timerValue = value));
 	timer.set({
 		...timerValue,
-		status: 'pause',
-		timerPauseValue: currentTime
+		status: statusEnum.PAUSE,
+		time: timeValue
 	});
-	saveToLocal();
+	timer.saveToLocal();
 };
 
 timer.clear = () => {
 	timer.set(defaultState);
-	saveToLocal();
+	timer.saveToLocal();
 };
 
 timer.getTime = () => {
-	let currentTime = new Date().getTime();
+	var currentTime = new Date().getTime();
 	let timerValue = null;
 	timer.subscribe((value) => (timerValue = value));
 
-	let elapsedPausedTime = 0;
-
-	if (timerValue.timerPauseValue) {
-		elapsedPausedTime = currentTime - timerValue.timerPauseValue;
+	if (timerValue.status === statusEnum.INIT && !!timerValue.pauseValue) {
+		timerValue.time += currentTime - timerValue.pauseValue;
+		timerValue.pauseValue = '';
 	}
 
-	const totalElapsedTime = currentTime - timerValue.timerInitValue - elapsedPausedTime;
-
-	return totalElapsedTime;
+	return timerValue.time;
 };
 
 export default timer;
