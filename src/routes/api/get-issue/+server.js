@@ -4,7 +4,7 @@ import { makeRequest } from '$lib/server/makeRequest';
 export async function POST({ request }) {
 	const { apiKey, issue_id } = await request.json();
 	const response = await makeRequest(
-		`http://redmine.codedot.io/issues/${issue_id}.json`,
+		`https://redmine.codedot.io/issues/${issue_id}.json`,
 		apiKey,
 		null,
 		null,

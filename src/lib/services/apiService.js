@@ -71,7 +71,7 @@ export const getEntryActivities = async (apiKey) =>
 		.then((res) => res.time_entry_activities);
 
 export const setTimeEntries = async (apiKey, timeEntry) => {
-	const { issue_id, spent_on, hours, activity_id, comments } = timeEntry;
+	const { issue_id, spent_on, hours, activity_id, comments, billable_id } = timeEntry;
 
 	const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
 	<time_entry>
@@ -80,6 +80,11 @@ export const setTimeEntries = async (apiKey, timeEntry) => {
 	  <hours>${hours}</hours>
 	  <activity_id>${activity_id}</activity_id>
 	  <comments>${comments}</comments>
+	  <custom_fields type="array">
+		<custom_field id="2" name="Billable">
+		<value>${billable_id}</value>
+		</custom_field>
+	  </custom_fields>
 	</time_entry>`;
 
 	return await fetch('/api/set-time-entries', {
@@ -88,9 +93,9 @@ export const setTimeEntries = async (apiKey, timeEntry) => {
 		headers: {
 			'content-type': 'application/json'
 		}
-	}).then((res) =>
-		res.statusText === 'OK'
+	}).then((res) => {
+		return res.ok === true
 			? { status: true, responseMessage: 'Entry added' }
-			: { status: false, responseMessage: 'Entry not was added' }
-	);
+			: { status: false, responseMessage: 'Entry not was added' };
+	});
 };

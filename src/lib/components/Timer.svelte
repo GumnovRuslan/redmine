@@ -94,9 +94,13 @@
 				<div on:click={toggleStatusTimer} class="timer__btn {buttonConditionStatus}">
 					<span />
 				</div>
-				{#if !!time && !interval && buttonConditionStatus != 'pause'}
-					<div on:click={turnOffTimer} class="timer__btn confirm"><span /></div>
-				{/if}
+				<div
+					class:timer__hidden={!(!!time && !interval && buttonConditionStatus != 'pause')}
+					on:click={turnOffTimer}
+					class="timer__btn confirm"
+				>
+					<span />
+				</div>
 			</div>
 		</div>
 	</div>
@@ -104,8 +108,7 @@
 
 <style lang="scss">
 	.timer {
-		position: sticky;
-		top: 20px;
+		z-index: 50;
 		background: #fefefd;
 		border: 1px solid #d6d6d6;
 		box-shadow: 4px 4px 15px 1px rgba(0, 0, 0, 0.05);
@@ -113,6 +116,32 @@
 		padding: 20px 15px;
 		height: fit-content;
 		margin-top: 55px;
+
+		@media (max-width: 767.02px) {
+			width: calc(100% - 20px * 2);
+			left: 20px;
+		}
+
+		@media (min-width: 768px) and (max-width: 1023.02px) {
+			width: 350px;
+			right: 20px;
+		}
+
+		@media (max-width: 1023.02px) {
+			position: fixed;
+			bottom: 20px;
+			box-shadow: 4px 4px 15px 1px rgba(0, 0, 0, 0.2);
+		}
+
+		@media (min-width: 1024px) {
+			position: sticky;
+			top: 20px;
+		}
+
+		&__hidden {
+			opacity: 0;
+			pointer-events: none;
+		}
 
 		&__wrapper {
 			display: flex;

@@ -24,9 +24,13 @@
 		padding: 15px 30px;
 		transform: translate(-50%);
 		transition: 0.3s ease;
+		visibility: hidden;
+		opacity: 0;
 
 		&.active {
 			top: 20px;
+			visibility: visible;
+			opacity: 1;
 		}
 
 		&:not(&.active) {

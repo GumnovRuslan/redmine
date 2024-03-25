@@ -4,10 +4,33 @@
 	import TimerStore, { statusEnum } from '../stores/TimerStore';
 
 	export let activeItemId = null;
+	export let status = null;
 	export let issue = {};
 	export let handler = () => {};
 	export let showDetails = () => {};
 	export let showingTicketTimeEntries = () => {};
+
+	let animationBubble = false;
+
+	const ticketItemHandleClick = () => {
+		if (handler()) {
+			animationBubble = true;
+
+			setTimeout(() => {
+				animationBubble = false;
+			}, 300);
+		}
+	};
+
+	const handleShoDetails = (e) => {
+		e.stopPropagation();
+		showDetails();
+	};
+
+	const handleShowTimeEntries = (e) => {
+		e.stopPropagation();
+		showingTicketTimeEntries();
+	};
 
 	$: colorDot = $TimerStore.status == statusEnum.INIT ? 'red' : 'blue';
 	$: isPlayingAnimation = $TimerStore.status == statusEnum.INIT ? true : false;
@@ -15,20 +38,22 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
+	on:click={ticketItemHandleClick}
 	class:active={activeItemId}
 	class:isPlayingAnimation
-	style="--colorDot: {colorDot};"
+	style="--colorDot: {colorDot}; background:{status};"
+	class:buble={animationBubble}
 	class="ticketItem"
 >
 	<div class="ticketItem__wrapper">
 		<div class="ticketItem__heading">
-			<p on:click={handler} class="ticketItem__heading-text">{issue.subject}</p>
-			<div on:click={showingTicketTimeEntries} class="ticketItem__heading-time">
-				<p class="ticketItem__heading-text">8:42</p>
+			<p class="ticketItem__heading-text ticketItem__heading-title">{issue.subject}</p>
+			<div on:click={handleShowTimeEntries} class="ticketItem__heading-time">
+				<p class="ticketItem__heading-text">{issue.spent_time.toFixed(2)}h</p>
 				<Icon width="30px" height="30px" name="chevron-down" />
 			</div>
 		</div>
-		<Button handle={showDetails} label="Show more" />
+		<Button handle={handleShoDetails} label="Show more" />
 	</div>
 </div>
 
@@ -39,8 +64,31 @@
 		border: 1px solid #d6d6d6;
 		box-shadow: 4px 4px 15px 1px rgba(0, 0, 0, 0.05);
 		border-radius: 12px;
-		padding: 25px;
+
 		transition: 1s ease;
+		cursor: pointer;
+
+		@media (max-width: 1023.02px) {
+			padding: 15px;
+		}
+
+		@media (min-width: 1024px) {
+			padding: 25px;
+		}
+
+		&.buble {
+			animation: bubbleAnimation 0.3s ease-in-out infinite;
+		}
+
+		@keyframes bubbleAnimation {
+			0%,
+			100% {
+				transform: scale(1);
+			}
+			50% {
+				transform: scale(0.96);
+			}
+		}
 
 		&.active.isPlayingAnimation {
 			&:after {
@@ -83,18 +131,40 @@
 		}
 
 		&__heading {
+			position: relative;
 			display: flex;
-			align-items: center;
+			align-items: flex-start;
 			justify-content: space-between;
 			width: 100%;
+			gap: 20px;
+
+			@media (max-width: 767.02px) {
+				flex-wrap: wrap;
+			}
+		}
+
+		&__heading-title {
+			padding-right: 30px;
+
+			@media (max-width: 767.02px) {
+				order: 2;
+			}
 		}
 
 		&__heading-text {
 			font-weight: 700;
-			font-size: 20px;
-			line-height: 27px;
 			color: #000000;
 			cursor: pointer;
+
+			@media (max-width: 1023.02px) {
+				font-size: 16px;
+				line-height: 20px;
+			}
+
+			@media (min-width: 1024px) {
+				font-size: 20px;
+				line-height: 27px;
+			}
 		}
 
 		&__heading-time {
@@ -103,6 +173,7 @@
 			align-items: center;
 			gap: 10px;
 			cursor: pointer;
+			transition: 0.3s ease;
 
 			&::after {
 				content: '';
@@ -119,9 +190,17 @@
 		&__text {
 			padding-top: 20px;
 			font-weight: 500;
-			font-size: 16px;
-			line-height: 22px;
 			color: #7f818b;
+
+			@media (max-width: 1023.02px) {
+				font-size: 14px;
+				line-height: 18px;
+			}
+
+			@media (min-width: 1024px) {
+				font-size: 16px;
+				line-height: 22px;
+			}
 		}
 	}
 </style>

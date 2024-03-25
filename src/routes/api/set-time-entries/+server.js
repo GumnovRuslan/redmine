@@ -5,7 +5,7 @@ export async function POST({ request }) {
 	const { apiKey, xmlData } = await request.json();
 
 	const response = await makeRequest(
-		`http://redmine.codedot.io/time_entries.xml`,
+		`https://redmine.codedot.io/time_entries.xml`,
 		apiKey,
 		null,
 		null,

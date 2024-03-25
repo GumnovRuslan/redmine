@@ -1,8 +1,8 @@
 <script>
 	import PageWrapper from '../lib/components/PageWrapper.svelte';
-	import Container from '$lib/components/container.svelte';
-	import UserBar from '$lib/components/UserBar.svelte';
-	import userData from '$lib/stores/UserStore';
+	import Container from '../lib/components/Container.svelte';
+	import UserBar from '../lib/components/UserBar.svelte';
+	import userData from '../lib/stores/UserStore';
 	import Dashboard from '../lib/components/Dashboard.svelte';
 </script>
 

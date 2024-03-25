@@ -1,10 +1,16 @@
 <script>
 	export let type = 'text';
+	export let step = '0.1';
 	export let value = type === 'date' ? dateNow() : '';
 	export let placeholder = 'Placeholder';
+	export let isTextArea = false;
 
 	function typeAction(node) {
 		node.type = type;
+	}
+
+	function stepAction(node) {
+		node.step = step;
 	}
 
 	function dateNow() {
@@ -16,7 +22,11 @@
 
 <label class="field">
 	<span class="field__label">{placeholder}</span>
-	<input class="field__input" use:typeAction bind:value/>
+	{#if !isTextArea}
+		<input class="field__input" use:stepAction use:typeAction bind:value />
+	{:else}
+		<textarea class="field__input textarea" />
+	{/if}
 </label>
 
 <style lang="scss">
@@ -35,6 +45,12 @@
 			&:focus,
 			&:active {
 				outline: 0;
+			}
+
+			&.textarea {
+				max-height: 300px;
+				min-height: 100px;
+				resize: vertical;
 			}
 		}
 

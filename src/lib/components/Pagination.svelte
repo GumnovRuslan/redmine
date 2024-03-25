@@ -22,21 +22,42 @@
 	</button>
 
 	<div class="pagination__list">
-		{#if currentPage > 3}
-			<button class="pagination__btn" on:click={() => goToPage(1)}>1</button>
-			<button class="pagination__btn">...</button>
-		{/if}
+		{#if totalPages > 5}
+			{#if currentPage > 3}
+				<button class="pagination__btn" on:click={() => goToPage(1)}>1</button>
+				<button class="pagination__btn">...</button>
+			{/if}
+			{#if currentPage > 2 && currentPage < 4}
+				<button class="pagination__btn" on:click={() => goToPage(1)}>1</button>
+			{/if}
 
-		{#each range(Math.max(1, currentPage - 1), Math.min(currentPage + 1, totalPages)) as page}
-			<button
-				class={'pagination__btn ' + (page === currentPage ? 'active' : '')}
-				on:click={() => goToPage(page)}>{page}</button
-			>
-		{/each}
+			{#if currentPage === totalPages}
+				<button class="pagination__btn" on:click={() => goToPage(totalPages - 2)}
+					>{totalPages - 2}</button
+				>
+			{/if}
 
-		{#if currentPage < totalPages - 1}
-			<button class="pagination__btn">...</button>
-			<button class="pagination__btn" on:click={() => goToPage(totalPages)}>{totalPages}</button>
+			{#each range(Math.max(1, currentPage - 1), Math.min(currentPage + 1, totalPages)) as page}
+				<button
+					class={'pagination__btn ' + (page === currentPage ? 'active' : '')}
+					on:click={() => goToPage(page)}>{page}</button
+				>
+			{/each}
+
+			{#if currentPage === 1}
+				<button class="pagination__btn" on:click={() => goToPage(3)}>3</button>
+			{/if}
+			{#if currentPage < totalPages - 1}
+				<button class="pagination__btn">...</button>
+				<button class="pagination__btn" on:click={() => goToPage(totalPages)}>{totalPages}</button>
+			{/if}
+		{:else}
+			{#each range(1, totalPages) as page}
+				<button
+					class={'pagination__btn ' + (page === currentPage ? 'active' : '')}
+					on:click={() => goToPage(page)}>{page}</button
+				>
+			{/each}
 		{/if}
 	</div>
 
@@ -55,8 +76,16 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 20px 0;
-		gap: 30px;
+
+		@media (max-width: 1023.02px) {
+			padding: 10px 0;
+			gap: 10px;
+		}
+
+		@media (min-width: 1024px) {
+			padding: 20px 0;
+			gap: 30px;
+		}
 
 		&__list {
 			display: flex;

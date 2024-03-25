@@ -3,6 +3,9 @@
 	import userData from '$lib/stores/UserStore';
 	import { getIssue } from '$lib/services/apiService';
 	import Modal from './Modal.svelte';
+	import Loading from '../Loading.svelte';
+	import { processDescription, getImage } from '$lib/helpers/parserDescription';
+
 	export let titleHeading = '';
 	export let handlerClose = () => {};
 	export let issueId;
@@ -11,29 +14,23 @@
 	$: issueData = null;
 	let content = null;
 	let attachments = null;
-
-	const getImage = ({ url = '', alt = 'image' }) => {
-		return `<img  src='${url}?key=${localApiKey}' alt='${alt}'/>`;
-	};
-
-	const processDescription = (description, attachments) => {
-		attachments.forEach(({ filename, content_url }) => {
-			description = description.replace(
-				`!${filename}!`,
-				getImage({ url: content_url, alt: filename })
-			);
-		});
-		return description;
-	};
+	let description = null;
 
 	onMount(async () => {
 		issueData = (await getIssue(localApiKey, issueId)).issue;
-		content = processDescription(issueData.description, issueData.attachments);
+		content = processDescription(issueData.description, issueData.attachments, localApiKey);
 		attachments = issueData.attachments;
+		description = issueData.description;
+		console.log(issueData.description);
 	});
 </script>
 
-<Modal handleCloseModal={handlerClose} title={titleHeading}>
+<Modal modalContentFlex={false} handleCloseModal={handlerClose} title={titleHeading}>
+	<svelte:fragment slot="heading-content">
+		{#if issueData && issueData.estimated_hours}
+			<p class="ticket-details__text">Estimated time: {issueData.estimated_hours} h</p>
+		{/if}
+	</svelte:fragment>
 	{#if !!issueData}
 		{@html content}
 		{#if !!attachments.length}
@@ -43,18 +40,18 @@
 					{#each attachments as { content_type, content_url, filename }}
 						<a href={content_url} download class="ticket-details__file">
 							{#if content_type.includes('image')}
-								{@html getImage({ url: content_url, alt: filename })}
+								{@html getImage({ url: content_url, alt: filename }, 'preview', localApiKey)}
 							{/if}
 						</a>
 					{/each}
 				</div>
 			</div>
 		{/if}
-		{#if !attachments.length}
-			<p>No details</p>
+		{#if !attachments.length && !content.length}
+			<p style="text-align: center;">No details</p>
 		{/if}
 	{:else}
-		<p>LOADING ...</p>
+		<Loading />
 	{/if}
 </Modal>
 
@@ -63,33 +60,80 @@
 		&__files {
 			display: flex;
 			flex-direction: column;
-			gap: 30px;
-			padding-top: 50px;
+
+			@media (max-width: 1023.02px) {
+				gap: 15px;
+				padding-top: 25px;
+			}
+
+			@media (min-width: 1024px) {
+				gap: 30px;
+				padding-top: 50px;
+			}
+		}
+
+		&__text {
+			font-weight: 500;
+			color: gray;
+
+			@media (max-width: 1023.02px) {
+				font-size: 12px;
+				margin-top: 5px;
+			}
+
+			@media (min-width: 1024px) {
+				font-size: 14px;
+				margin-top: 10px;
+			}
 		}
 
 		&__files-list {
 			display: flex;
 			flex-wrap: wrap;
-			gap: 20px;
+
+			@media (max-width: 1023.02px) {
+				gap: 10px;
+			}
+
+			@media (min-width: 1024px) {
+				gap: 20px;
+			}
 		}
 
 		&__files-title {
 			font-weight: 700;
-			font-size: 20px;
-			line-height: 27px;
 			color: #000000;
+
+			@media (max-width: 1023.02px) {
+				font-size: 16px;
+				line-height: 20px;
+			}
+
+			@media (min-width: 1024px) {
+				font-size: 20px;
+				line-height: 27px;
+			}
 		}
 
 		&__file {
 			position: relative;
-			width: 150px;
-			height: 150px;
+
 			background: #fefefd;
-			border: 1px solid #d6d6d6;
+			border: 1px solid #c49c9c;
 			box-shadow: 4px 4px 15px 1px rgba(0, 0, 0, 0.05);
 			border-radius: 6px;
 			display: flex;
 			overflow: hidden;
+
+			@media (max-width: 1023.02px) {
+				width: 100px;
+				height: 100px;
+			}
+
+			@media (min-width: 1024px) {
+				width: 150px;
+				height: 150px;
+			}
 
 			img {
 				z-index: 5;

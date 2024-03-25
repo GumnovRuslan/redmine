@@ -2,12 +2,19 @@
 	<slot />
 </div>
 
-<style>
+<style lang="scss">
 	.container {
 		max-width: 1024px;
 		margin-left: auto;
 		margin-right: auto;
 		width: 100%;
-		padding: 0 32px;
+
+		@media (max-width: 1023.02px) {
+			padding: 0 20px;
+		}
+
+		@media (min-width: 1024px) {
+			padding: 0 32px;
+		}
 	}
 </style>

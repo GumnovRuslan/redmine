@@ -1,5 +1,7 @@
 <script>
 	import TicketItem from './TicketItem.svelte';
+	import priorityColor from '../helpers/priorityColor';
+
 	export let issues;
 	export let activeItemId;
 	export let handler = () => {};
@@ -20,11 +22,12 @@
 		<div class="ticketList__wrapper">
 			<p class="ticketList__title">Ticket</p>
 			<div class="ticketList__items">
-				{#each issues as issue}
+				{#each issues as { priority, ...issue }}
 					<TicketItem
 						handler={() => handler(issue)}
 						showingTicketTimeEntries={() => showingTicketTimeEntries(issue)}
 						showDetails={() => showDetails(issue)}
+						status={priorityColor[priority.name.toLowerCase()]}
 						{issue}
 						activeItemId={activeItemId == issue.id ? true : false}
 					/>

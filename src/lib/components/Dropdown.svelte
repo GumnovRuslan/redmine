@@ -26,6 +26,8 @@
 			box-shadow: 4px 4px 15px 1px rgba(0, 0, 0, 0.05);
 			border-radius: 5px;
 			padding: 5px 10px;
+			appearance: auto;
+			-webkit-appearance: auto;
 
 			&:focus,
 			&:active {
