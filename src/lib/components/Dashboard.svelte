@@ -8,7 +8,7 @@
 	import TrackTimeModal from '$lib/components/Modals/TrackTimeModal.svelte';
 	import TicketDetails from './Modals/TicketDetails.svelte';
 	import TicketTimeEntries from './Modals/TicketTimeEntries.svelte';
-	import { getIssues, getIssue } from '$lib/services/apiService';
+	import { getIssues, getIssue, getStatuses, getRoles, getMemberships} from '$lib/services/apiService';
 	import TimerStore from '$lib/stores/TimerStore';
 	import Pagination from '$lib/components/Pagination.svelte';
 
@@ -49,11 +49,11 @@
 	}
 	onMount(() => {
 		updateDashboard()
+
 	});
 
 	async function updateDashboard() {
 		prevcurrentPage = currentPage;
-
 		// await updateIssues(filterId);
 		if ($TimerStore.taskId) {
 			activeIssue = issues.find((item) => item.id === $TimerStore.taskId);
@@ -83,6 +83,7 @@
 		});
 
 		issues = resultIssue;
+		// getData()
 		paginationPagesCount = Math.ceil(response.total_count / itemsPerPage);
 		loading = false;
 	};

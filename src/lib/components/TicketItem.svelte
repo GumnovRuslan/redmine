@@ -3,9 +3,10 @@
 	import Button from './Button.svelte';
 	import TimerStore, { statusEnum } from '../stores/TimerStore';
 	import userData from '$lib/stores/UserStore';
-	import {setStatusIssue} from '$lib/services/apiService.js'
+	import {setStatusIssue, getStatuses, getRoles, getMemberships} from '$lib/services/apiService.js'
 	import {statusIsChange} from '../stores/statusStore.js';
 	import Dropdown from './Dropdown.svelte';
+	import {rulesForChangingStatus} from '../services/getAvailableStatuses'
 
 
 	export let activeItemId = null;
@@ -16,6 +17,10 @@
 	export let showingTicketTimeEntries = () => {};
 
 	const { localApiKey } = $userData;
+	let user_id = issue.assigned_to.id
+	let project_id = issue.project.id
+	let issueStatus_id = issue.status.id
+	let ticket_id = issue.id
 
 	let statuses = [
         {
@@ -69,10 +74,23 @@
 	$: colorDot = $TimerStore.status == statusEnum.INIT ? 'red' : 'blue';
 	$: isPlayingAnimation = $TimerStore.status == statusEnum.INIT ? true : false;
 
-	async function changeStatus(e, ApiKey, issue_id, status_id, user_id) {
+	async function changeStatus(ApiKey, issue_id, status_id, user_id) {
 		let response = await setStatusIssue(ApiKey, issue_id, status_id, user_id)
 		if (response.status) statusIsChange.set(status_id)
 	}
+
+	async function getData() {
+		const statusesTrue = await getStatuses($userData.localApiKey)
+		// const roles = await getRoles($userData.localApiKey)
+		const membership = await getMemberships($userData.localApiKey, project_id)
+		const userMembership = membership.find(membership => membership.user.id === user_id)
+		const userRoleName = userMembership.roles.map(role => role.name)
+		// const userRoleName = ['QA']
+		const setStatuses = new Set()
+		userRoleName.forEach(roleName => rulesForChangingStatus[roleName][issueStatus_id].forEach(n => setStatuses.add(n)))
+		statuses = new Array(...setStatuses).map(id => statusesTrue.find(status => status.id == id))
+	}
+	getData()
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -88,8 +106,8 @@
 		<div class='ticketItem__status'>
 			<Dropdown
 				items={statuses}
-				value={issue.status.id}
-				handlerChange={(e) => changeStatus(e, localApiKey, issue.id, e.target.value, issue.assigned_to.id)}
+				value={issueStatus_id}
+				handlerChange={(e) => changeStatus(localApiKey, ticket_id, e.target.value, user_id)}
 			/>
 		</div>
 

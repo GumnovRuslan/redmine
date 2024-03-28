@@ -71,6 +71,47 @@ export const getEntryActivities = async (apiKey) =>
 		.then((res) => res.json())
 		.then((res) => res.time_entry_activities);
 
+export const getStatuses = async (apiKey) =>
+		await fetch('/api/get-statuses', {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey
+			}),
+			headers: {
+				'content-type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.then((res) => res.issue_statuses);
+
+export const getRoles = async (apiKey) =>
+		await fetch('/api/get-roles', {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey
+			}),
+			headers: {
+				'content-type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.then((res) => res.roles);
+
+export const getMemberships = async (apiKey, project_id) =>
+		await fetch('/api/get-memberships', {
+			method: 'POST',
+			body: JSON.stringify({
+				apiKey,
+				project_id
+			}),
+			headers: {
+				'content-type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.then((res) => res.memberships);
+
+
 export const setTimeEntries = async (apiKey, timeEntry) => {
 	const { issue_id, spent_on, hours, activity_id, comments, billable_id } = timeEntry;
 

@@ -7,12 +7,40 @@
 	import { getEntryActivities, setTimeEntries } from '$lib/services/apiService';
 	import Modal from './Modal.svelte';
 	import TimerStore from '../../stores/TimerStore';
+	import {setStatusIssue} from '$lib/services/apiService.js'
 
 	export let timeSpent;
 	export let activeIssue;
 	export let titleHeading = '';
 	export let handler = () => {};
 	export let handlerClose = () => {};
+
+	let statuses = [
+        {
+            name: 'To do',
+            id: 1,
+        },
+        {
+            name: 'In Progress',
+            id: 2,
+        },
+        {
+            name: 'Closed',
+            id: 5,
+        },
+        {
+            name: 'QA',
+            id: 4,
+        },
+        {
+            name: 'Resolved',
+            id: 3,
+        },
+        {
+            name: 'Estimate',
+            id: 8,
+        },
+	]
 
 	const { localApiKey } = $userData;
 
@@ -32,6 +60,7 @@
 	let comment = '';
 	let dateSpent;
 	$: errors = {};
+	$: status_id = console.log(activeIssue.status.id)
 
 	onMount(async function () {
 		activities = await getEntryActivities(localApiKey).then(res => res.filter(obj => obj.active));
@@ -72,6 +101,8 @@
 			handler(response.responseMessage);
 			TimerStore.clear();
 		}
+
+		await setStatusIssue(localApiKey, activeIssue.id, activeIssue.status.id, activeIssue.assigned_to.id)
 	}
 
 	const validateDate = (date) => {
@@ -89,6 +120,7 @@
 		handleCloseModal={() => handlerClose()}
 		title={`Save spent time on ticket : ${titleHeading}`}
 	>
+		<Dropdown bind:value={activeIssue.status.id} items={statuses} />
 		{#if errors?.date}
 			<p class="TrackTimeModal__error-message">{errors.date.message}</p>
 		{/if}
