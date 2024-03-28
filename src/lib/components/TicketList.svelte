@@ -42,7 +42,7 @@
 		&__wrapper {
 			display: flex;
 			flex-direction: column;
-			gap: 30px;
+			gap: 20px;
 		}
 
 		&__title {
@@ -51,7 +51,6 @@
 			line-height: 22px;
 			color: #7f818b;
 		}
-
 		&__items {
 			display: flex;
 			flex-direction: column;

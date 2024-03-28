@@ -2,6 +2,11 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import Button from './Button.svelte';
 	import TimerStore, { statusEnum } from '../stores/TimerStore';
+	import userData from '$lib/stores/UserStore';
+	import {setStatusIssue} from '$lib/services/apiService.js'
+	import {statusIsChange} from '../stores/statusStore.js';
+	import Dropdown from './Dropdown.svelte';
+
 
 	export let activeItemId = null;
 	export let status = null;
@@ -10,9 +15,38 @@
 	export let showDetails = () => {};
 	export let showingTicketTimeEntries = () => {};
 
+	const { localApiKey } = $userData;
+
+	let statuses = [
+        {
+            name: 'To do',
+            id: 1,
+        },
+        {
+            name: 'In Progress',
+            id: 2,
+        },
+        {
+            name: 'Closed',
+            id: 5,
+        },
+        {
+            name: 'QA',
+            id: 4,
+        },
+        {
+            name: 'Resolved',
+            id: 3,
+        },
+        {
+            name: 'Estimate',
+            id: 8,
+        },
+	]
+
 	let animationBubble = false;
 
-	const ticketItemHandleClick = () => {
+	const ticketItemHandleClick = (e) => {
 		if (handler()) {
 			animationBubble = true;
 
@@ -34,6 +68,11 @@
 
 	$: colorDot = $TimerStore.status == statusEnum.INIT ? 'red' : 'blue';
 	$: isPlayingAnimation = $TimerStore.status == statusEnum.INIT ? true : false;
+
+	async function changeStatus(e, ApiKey, issue_id, status_id, user_id) {
+		let response = await setStatusIssue(ApiKey, issue_id, status_id, user_id)
+		if (response.status) statusIsChange.set(status_id)
+	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -46,6 +85,14 @@
 	class="ticketItem"
 >
 	<div class="ticketItem__wrapper">
+		<div class='ticketItem__status'>
+			<Dropdown
+				items={statuses}
+				value={issue.status.id}
+				handlerChange={(e) => changeStatus(e, localApiKey, issue.id, e.target.value, issue.assigned_to.id)}
+			/>
+		</div>
+
 		<div class="ticketItem__heading">
 			<p class="ticketItem__heading-text ticketItem__heading-title">{issue.subject}</p>
 			<div on:click={handleShowTimeEntries} class="ticketItem__heading-time">
@@ -74,6 +121,13 @@
 
 		@media (min-width: 1024px) {
 			padding: 25px;
+		}
+
+		&__status-select {
+			border-radius: 10px;
+			border: 1px solid #d6d6d6;
+			padding: 5px 10px;
+			cursor: pointer;
 		}
 
 		&.buble {

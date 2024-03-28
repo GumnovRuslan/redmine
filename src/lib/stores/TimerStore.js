@@ -36,7 +36,7 @@ timer.saveToLocal = () => {
 };
 
 timer.start = (taskId, timeValue) => {
-	var timerValue = null;
+	let timerValue = null;
 	timer.subscribe((value) => (timerValue = value));
 
 	timer.set({

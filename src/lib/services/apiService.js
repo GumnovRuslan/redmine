@@ -7,13 +7,14 @@ export const getUserCred = async (username, password, apiKey) =>
 		}
 	}).then((res) => res.json());
 
-export const getIssues = async (apiKey, offset, limit) =>
+export const getIssues = async (apiKey, offset, limit, filterId) =>
 	await fetch('/api/get-issues', {
 		method: 'POST',
 		body: JSON.stringify({
 			apiKey,
 			offset,
-			limit
+			limit,
+			filterId
 		}),
 		headers: {
 			'content-type': 'application/json'
@@ -99,3 +100,23 @@ export const setTimeEntries = async (apiKey, timeEntry) => {
 			: { status: false, responseMessage: 'Entry not was added' };
 	});
 };
+
+export const setStatusIssue = async (apiKey, issue_id, status_id, user_id) => {
+	const xmlData = `?xml version="1.0" encoding="UTF-8"?
+	<issue>
+		<status_id>${status_id}</status_id>
+		<assigned_to_id>${user_id}</assigned_to_id>
+	</issue>
+	`
+	return await fetch(`/api/set-issue`, {
+		method: 'POST',
+		body: JSON.stringify({apiKey, xmlData, issue_id}),
+		headers: {
+			'content-type': 'application/json'
+		}
+	}).then((res) => {
+		return res.ok === true
+			? { status: true, responseMessage: 'Status changed' }
+			: { status: false, responseMessage: 'Status not was changed' };
+	});
+}

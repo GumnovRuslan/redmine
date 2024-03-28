@@ -9,10 +9,15 @@
 	import TicketDetails from './Modals/TicketDetails.svelte';
 	import TicketTimeEntries from './Modals/TicketTimeEntries.svelte';
 	import { getIssues, getIssue } from '$lib/services/apiService';
-	import TimerStore from '../stores/TimerStore';
-	import Pagination from './Pagination.svelte';
+	import TimerStore from '$lib/stores/TimerStore';
+	import Pagination from '$lib/components/Pagination.svelte';
 
-	let loading = null;
+	export let statusBull = false
+	export let filterId = 1
+
+	let currentId = null
+
+	let loading = false;
 	let timerValue = null;
 	let popupMessage = '';
 	let isShowingTicketDetails = false;
@@ -33,20 +38,28 @@
 
 	$: {
 		if (!!prevcurrentPage && currentPage != prevcurrentPage) {
-			updateIssues();
+			updateIssues(filterId);
 			prevcurrentPage = currentPage;
+		} else if(currentId) {
+			currentPage = 1
+			updateIssues(filterId);
+		} else if(statusBull) {
 		}
+		currentId = 1
 	}
+	onMount(() => {
+		updateDashboard()
+	});
 
-	onMount(async () => {
+	async function updateDashboard() {
 		prevcurrentPage = currentPage;
 
-		await updateIssues();
+		// await updateIssues(filterId);
 		if ($TimerStore.taskId) {
 			activeIssue = issues.find((item) => item.id === $TimerStore.taskId);
 			timerValue = TimerStore.getTime();
 		}
-	});
+	}
 
 	const clearTimerSession = () => {
 		showPopup = false;
@@ -54,11 +67,12 @@
 		timerValue = null;
 	};
 
-	const updateIssues = async () => {
+	const updateIssues = async (filterId = 0) => {
+		console.log('update')
 		loading = true;
 		let resultIssue = null;
 		paginacationOffset = currentPage * itemsPerPage - itemsPerPage;
-		const response = await getIssues($userData.localApiKey, paginacationOffset, itemsPerPage);
+		const response = await getIssues($userData.localApiKey, paginacationOffset, itemsPerPage, filterId);
 		resultIssue = response.issues;
 
 		const issuePromises = resultIssue.map((issue) => getIssue($userData.localApiKey, issue.id));
@@ -123,6 +137,9 @@
 		<Loading />
 	{:else}
 		<div class="dashboard__wrapper">
+			{#if !issues.length}
+			<p class='dashboard__message'>no result</p>
+			{:else}
 			<div class="dashboard__list-wrapper">
 				<TicketList
 					handler={handleActiveIssue}
@@ -133,43 +150,45 @@
 				/>
 
 				{#if paginationPagesCount > 1}
-					<Pagination bind:currentPage totalPages={paginationPagesCount} {itemsPerPage} />
+					<Pagination bind:currentPage totalPages={paginationPagesCount} />
 				{/if}
 			</div>
+			<div class='dashboard__timer'>
+				{#if activeIssue}
+					<Timer
+						activeIssueName={activeIssue.subject}
+						activeIssueId={activeIssue.id}
+						bind:time={timerValue}
+						handle={toggleShowingModal}
+					/>
+				{/if}
 
-			{#if activeIssue}
-				<Timer
-					activeIssueName={activeIssue.subject}
-					activeIssueId={activeIssue.id}
-					bind:time={timerValue}
-					handle={toggleShowingModal}
-				/>
-			{/if}
+				{#if activeIssue && isShowingModal}
+					<TrackTimeModal
+						handler={handleCreateTimeEntry}
+						handlerClose={toggleShowingModal}
+						titleHeading={activeIssue.subject}
+						{timeSpent}
+						{activeIssue}
+					/>
+				{/if}
 
-			{#if activeIssue && isShowingModal}
-				<TrackTimeModal
-					handler={handleCreateTimeEntry}
-					handlerClose={toggleShowingModal}
-					titleHeading={activeIssue.subject}
-					{timeSpent}
-					{activeIssue}
-				/>
-			{/if}
+				{#if activeIssueModal && isShowingTicketDetails}
+					<TicketDetails
+						titleHeading="Issue details"
+						issueId={activeIssueModal.id}
+						handlerClose={toggleTicketDetails}
+					/>
+				{/if}
 
-			{#if activeIssueModal && isShowingTicketDetails}
-				<TicketDetails
-					titleHeading="Issue details"
-					issueId={activeIssueModal.id}
-					handlerClose={toggleTicketDetails}
-				/>
-			{/if}
-
-			{#if activeIssueModal && isShowingTicketTimeEntries}
-				<TicketTimeEntries
-					titleHeading="Ticket time entries"
-					issueId={activeIssueModal.id}
-					handlerClose={toggleTicketTimeEntries}
-				/>
+				{#if activeIssueModal && isShowingTicketTimeEntries}
+					<TicketTimeEntries
+						titleHeading="Ticket time entries"
+						issueId={activeIssueModal.id}
+						handlerClose={toggleTicketTimeEntries}
+					/>
+				{/if}
+			</div>
 			{/if}
 		</div>
 	{/if}
@@ -179,7 +198,6 @@
 
 <style lang="scss">
 	.dashboard {
-		padding-top: 30px;
 
 		&__wrapper {
 			display: grid;

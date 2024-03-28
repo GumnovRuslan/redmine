@@ -1,12 +1,18 @@
 <script>
 	export let items;
 	export let value;
-	export let placeholder = 'Placeholder';
+	export let placeholder = '';
+	export let handlerChange = ''
 </script>
 
 <label class="field">
-	<span class="field__label">{placeholder}</span>
-	<select class="field__input" bind:value>
+	{#if placeholder}
+		<span class="field__label">{placeholder}</span>
+	{/if}
+	<select class="field__input"
+	bind:value
+	on:click|stopPropagation={(e) => {}}
+	on:change={handlerChange}>
 		{#each items as { id, name }}
 			<option value={id}>{name}</option>
 		{/each}

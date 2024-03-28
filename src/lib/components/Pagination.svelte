@@ -1,5 +1,5 @@
 <script>
-	export let currentPage;
+	export let currentPage = 1;
 	export let totalPages;
 
 	function range(start, end) {
