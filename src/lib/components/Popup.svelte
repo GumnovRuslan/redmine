@@ -1,10 +1,25 @@
 <script>
+	import { popupStore } from '../stores/popupStore.js'
 	export let isShow;
 	export let title = '';
 	export let text = '';
+	export let time = 3000
+
+	$: {
+		if(isShow) {
+			setTimeout(() => {
+				popupStore.set({
+					isShow: false,
+					title: '',
+					text: ''
+				})
+			}, time);
+
+		}
+	}
 </script>
 
-<div class="popup {isShow ? 'active' : ''}">
+<div class="popup" class:active={isShow}>
 	<div class="popup__wrapper">
 		<div class="popup__title">{title}</div>
 		<div class="popup__text">{text}</div>

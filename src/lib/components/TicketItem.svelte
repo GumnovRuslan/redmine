@@ -1,12 +1,14 @@
 <script>
+	import { onMount } from "svelte";
 	import Icon from '$lib/components/Icon.svelte';
 	import Button from './Button.svelte';
 	import TimerStore, { statusEnum } from '../stores/TimerStore';
 	import userData from '$lib/stores/UserStore';
-	import {setStatusIssue, getStatuses, getRoles, getMemberships} from '$lib/services/apiService.js'
+	import { popupStore } from "../stores/popupStore.js";
+	import {setStatusIssue, getStatuses, getMemberships, getIssues} from '$lib/services/apiService.js'
 	import {statusIsChange} from '../stores/statusStore.js';
 	import Dropdown from './Dropdown.svelte';
-	import {rulesForChangingStatus} from '../services/getAvailableStatuses'
+	import {availableStatusesForRole} from '../services/getAvailableStatuses'
 
 
 	export let activeItemId = null;
@@ -17,10 +19,6 @@
 	export let showingTicketTimeEntries = () => {};
 
 	const { localApiKey } = $userData;
-	let user_id = issue.assigned_to.id
-	let project_id = issue.project.id
-	let issueStatus_id = issue.status.id
-	let ticket_id = issue.id
 
 	let statuses = [
         {
@@ -51,6 +49,10 @@
 
 	let animationBubble = false;
 
+	onMount(() => {
+		getAvailableStatuses(localApiKey, issue)
+	})
+
 	const ticketItemHandleClick = (e) => {
 		if (handler()) {
 			animationBubble = true;
@@ -76,21 +78,36 @@
 
 	async function changeStatus(ApiKey, issue_id, status_id, user_id) {
 		let response = await setStatusIssue(ApiKey, issue_id, status_id, user_id)
-		if (response.status) statusIsChange.set(status_id)
+		if (response.status) {
+			statusIsChange.update(bull => !bull)
+			popupStore.set({
+				isShow: true,
+				title: 'Notification',
+				text: `Status ${issue.subject} is change`
+			})
+		}
 	}
 
-	async function getData() {
-		const statusesTrue = await getStatuses($userData.localApiKey)
-		// const roles = await getRoles($userData.localApiKey)
-		const membership = await getMemberships($userData.localApiKey, project_id)
+	async function getAvailableStatuses(ApiKey, issue) {
+		let user_id = issue.assigned_to.id
+		let project_id = issue.project.id
+		let ticket_id = issue.id
+		const statusesTrue = await getStatuses(ApiKey)
+		const parents = await getIssues(ApiKey, false, false, false, ticket_id)
+		const membership = await getMemberships(ApiKey, project_id)
+		let parentsIsOpen = false
+		if(parents.total_count)
+			parentsIsOpen = !parents.issues.find(issue => issue.status.id == 5 || issue.status.id == 6)
 		const userMembership = membership.find(membership => membership.user.id === user_id)
-		const userRoleName = userMembership.roles.map(role => role.name)
+		const userRolesName = userMembership.roles.map(role => role.name)
 		// const userRoleName = ['QA']
-		const setStatuses = new Set()
-		userRoleName.forEach(roleName => rulesForChangingStatus[roleName][issueStatus_id].forEach(n => setStatuses.add(n)))
-		statuses = new Array(...setStatuses).map(id => statusesTrue.find(status => status.id == id))
+		let allStatuses = new Set()
+		userRolesName.forEach(roleName => availableStatusesForRole[roleName][issue.status.id].forEach(n => allStatuses.add(n)))
+		allStatuses = new Array(...allStatuses)
+		if(parentsIsOpen)
+			allStatuses = allStatuses.filter(status => status != 5 && status != 6)
+		statuses = allStatuses.map(id => statusesTrue.find(status => status.id == id))
 	}
-	getData()
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -106,8 +123,8 @@
 		<div class='ticketItem__status'>
 			<Dropdown
 				items={statuses}
-				value={issueStatus_id}
-				handlerChange={(e) => changeStatus(localApiKey, ticket_id, e.target.value, user_id)}
+				value={issue.status.id}
+				handlerChange={(e) => changeStatus(localApiKey, issue.id, e.target.value, issue.assigned_to.id)}
 			/>
 		</div>
 

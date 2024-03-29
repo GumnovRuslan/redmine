@@ -7,14 +7,15 @@ export const getUserCred = async (username, password, apiKey) =>
 		}
 	}).then((res) => res.json());
 
-export const getIssues = async (apiKey, offset, limit, filterId) =>
+export const getIssues = async (apiKey, offset, limit, filterId, parent_id) =>
 	await fetch('/api/get-issues', {
 		method: 'POST',
 		body: JSON.stringify({
 			apiKey,
 			offset,
 			limit,
-			filterId
+			filterId,
+			parent_id
 		}),
 		headers: {
 			'content-type': 'application/json'

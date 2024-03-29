@@ -4,10 +4,11 @@
 	import Dropdown from '../Dropdown.svelte';
 	import Button from '../Button.svelte';
 	import userData from '$lib/stores/UserStore';
-	import { getEntryActivities, setTimeEntries } from '$lib/services/apiService';
+	import { getEntryActivities, setTimeEntries, setStatusIssue, getStatuses, getMemberships, getIssues } from '$lib/services/apiService';
 	import Modal from './Modal.svelte';
 	import TimerStore from '../../stores/TimerStore';
-	import {setStatusIssue} from '$lib/services/apiService.js'
+	import { popupStore } from '$lib/stores/popupStore.js'
+	import {availableStatusesForRole} from '$lib/services/getAvailableStatuses'
 
 	export let timeSpent;
 	export let activeIssue;
@@ -60,9 +61,9 @@
 	let comment = '';
 	let dateSpent;
 	$: errors = {};
-	$: status_id = console.log(activeIssue.status.id)
 
 	onMount(async function () {
+		getAvailableStatuses(localApiKey, activeIssue)
 		activities = await getEntryActivities(localApiKey).then(res => res.filter(obj => obj.active));
 		activeActivity = activities[0]?.id;
 	});
@@ -95,14 +96,18 @@
 			return;
 		}
 
+		await setStatusIssue(localApiKey, activeIssue.id, activeIssue.status.id, activeIssue.assigned_to.id)
 		const response = await setTimeEntries(localApiKey, timeEntry);
 		if (response.status) {
+			popupStore.set({
+				isShow: true,
+				title: 'Notification',
+				text: response.responseMessage
+			})
 			handlerClose();
 			handler(response.responseMessage);
 			TimerStore.clear();
 		}
-
-		await setStatusIssue(localApiKey, activeIssue.id, activeIssue.status.id, activeIssue.assigned_to.id)
 	}
 
 	const validateDate = (date) => {
@@ -113,6 +118,27 @@
 	const validateTimeSpent = (value) => {
 		return value > 0;
 	};
+
+	async function getAvailableStatuses(ApiKey, issue) {
+		let user_id = issue.assigned_to.id
+		let project_id = issue.project.id
+		let ticket_id = issue.id
+		const statusesTrue = await getStatuses(ApiKey)
+		const parents = await getIssues(ApiKey, false, false, false, ticket_id)
+		const membership = await getMemberships(ApiKey, project_id)
+		let parentsIsOpen = false
+		if(parents.total_count)
+			parentsIsOpen = !parents.issues.find(issue => issue.status.id == 5 || issue.status.id == 6)
+		const userMembership = membership.find(membership => membership.user.id === user_id)
+		const userRolesName = userMembership.roles.map(role => role.name)
+		// const userRoleName = ['QA']
+		let allStatuses = new Set()
+		userRolesName.forEach(roleName => availableStatusesForRole[roleName][issue.status.id].forEach(n => allStatuses.add(n)))
+		allStatuses = new Array(...allStatuses)
+		if(parentsIsOpen)
+			allStatuses = allStatuses.filter(status => status != 5 && status != 6)
+		statuses = allStatuses.map(id => statusesTrue.find(status => status.id == id))
+	}
 </script>
 
 {#if !!activities.length}

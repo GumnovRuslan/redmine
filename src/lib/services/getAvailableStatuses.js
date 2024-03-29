@@ -1,17 +1,13 @@
-
-export let rulesForChangingStatus = {
-    // Developer: {
-    //     'To do': [1, 8, 2, 5, 6],
-    //     'Estimate': [1, 8, 2, 5, 6],
-    //     'In Progress': [1, 8, 2, 12, 4, 3, 6],
-    //     'Code Review': [1, 2, 12, 4, 3, 6],
-    //     'QA': [1, 2, 4, 3, 6, 15],
-    //     'Resolved': [1, 3, 5,],
-    //     'Closed': [1, 3, 5, 6,],
-    //     'Rejected': [1, 12, 4, 3, 5, 6,],
-    //     'Not fixed bug': [2, 15,],
-
-    // }
+export let availableStatusesForRole = {
+    // 1: To do,
+    // 8: Estimate,
+    // 2: In Progress,
+    // 12: Code Review,
+    // 4: QA,
+    // 3: Resolved,
+    // 5: Closed,
+    // 6: Rejected,
+    // 15: Not fixed bug
     Manager: {
         1: [1, 8, 2, 5, 6],
         8: [1, 8, 2, 5, 6],

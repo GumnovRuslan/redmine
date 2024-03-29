@@ -21,7 +21,6 @@
 		content = processDescription(issueData.description, issueData.attachments, localApiKey);
 		attachments = issueData.attachments;
 		description = issueData.description;
-		console.log(issueData.description);
 	});
 </script>
 
