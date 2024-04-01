@@ -7,9 +7,11 @@
 	import TrackTimeModal from '$lib/components/Modals/TrackTimeModal.svelte';
 	import TicketDetails from './Modals/TicketDetails.svelte';
 	import TicketTimeEntries from './Modals/TicketTimeEntries.svelte';
-	import { getIssues, getIssue} from '$lib/services/apiService';
+	import { getIssues, getIssue, getMemberships, getStatuses} from '$lib/services/apiService';
 	import TimerStore from '$lib/stores/TimerStore';
 	import Pagination from '$lib/components/Pagination.svelte';
+	import {availableStatusesForRole} from '../services/getAvailableStatuses'
+
 
 	export let statusBull
 	export let filterId =  0
@@ -65,6 +67,7 @@
 	};
 
 	const updateIssues = async () => {
+		console.log('update')
 		loading = true;
 		let resultIssue = null;
 		paginacationOffset = currentPage * itemsPerPage - itemsPerPage;
@@ -73,15 +76,37 @@
 
 		const issuePromises = resultIssue.map((issue) => getIssue($userData.localApiKey, issue.id));
 		const issueResponses = await Promise.all(issuePromises);
+		const statusesPromises = resultIssue.map(issue => getAvailableStatuses($userData.localApiKey, issue))
+		const issueStatusesResponses = await Promise.all(statusesPromises);
 
-		resultIssue.forEach((issue, index) => {
-			issue.spent_time = issueResponses[index].issue.spent_hours;
-		});
+		resultIssue.forEach((issue, index) => issue.spent_time = issueResponses[index].issue.spent_hours);
+		resultIssue.forEach((issue, i) => issue.available_statuses = issueStatusesResponses[i])
 
 		issues = resultIssue;
 		paginationPagesCount = Math.ceil(response.total_count / itemsPerPage);
 		loading = false;
 	};
+
+	async function getAvailableStatuses(ApiKey, issue) {
+		let user_id = issue.assigned_to.id
+		let project_id = issue.project.id
+		let ticket_id = issue.id
+		const statusesTrue = await getStatuses(ApiKey)
+		const parents = await getIssues(ApiKey, false, false, false, ticket_id)
+		const membership = await getMemberships(ApiKey, project_id)
+		let parentsIsOpen = false
+		if(parents.total_count)
+			parentsIsOpen = !parents.issues.find(issue => issue.status.id == 5 || issue.status.id == 6)
+		const userMembership = membership.find(membership => membership.user.id === user_id)
+		const userRolesName = userMembership.roles.map(role => role.name)
+		// const userRoleName = ['QA']
+		let allStatuses = new Set()
+		userRolesName.forEach(roleName => availableStatusesForRole[roleName][issue.status.id].forEach(n => allStatuses.add(n)))
+		allStatuses = new Array(...allStatuses)
+		if(parentsIsOpen)
+			allStatuses = allStatuses.filter(status => status != 5 && status != 6)
+		return allStatuses.map(id => statusesTrue.find(status => status.id == id))
+	}
 
 	const handleActiveIssue = (issue) => {
 		if (!!timeSpent && issue?.id != activeIssue?.id) {
@@ -124,25 +149,26 @@
 
 <div class="dashboard">
 	<div class="dashboard__wrapper">
-		{#if !issues.length}
-			<p class='dashboard__message'>no result</p>
-		{:else}
 			{#if loading}
 				<Loading />
 			{:else}
-				<div class="dashboard__list-wrapper">
-						<TicketList
-							handler={handleActiveIssue}
-							{toggleTicketDetails}
-							{toggleTicketTimeEntries}
-							{issues}
-							activeItemId={activeIssue?.id || null}
-						/>
+				{#if !issues.length || loading}
+					<p class='dashboard__message'>no result</p>
+				{:else}
+					<div class="dashboard__list-wrapper">
+							<TicketList
+								handler={handleActiveIssue}
+								{toggleTicketDetails}
+								{toggleTicketTimeEntries}
+								{issues}
+								activeItemId={activeIssue?.id || null}
+							/>
 
-						{#if paginationPagesCount > 1}
-							<Pagination bind:currentPage totalPages={paginationPagesCount} />
-						{/if}
-				</div>
+							{#if paginationPagesCount > 1}
+								<Pagination bind:currentPage totalPages={paginationPagesCount} />
+							{/if}
+					</div>
+				{/if}
 			{/if}
 			<div class='dashboard__timer'>
 					{#if activeIssue}
@@ -180,7 +206,6 @@
 						/>
 					{/if}
 			</div>
-		{/if}
 	</div>
 </div>
 

@@ -1,15 +1,12 @@
 <script>
-	import { onMount } from "svelte";
 	import Icon from '$lib/components/Icon.svelte';
 	import Button from './Button.svelte';
 	import TimerStore, { statusEnum } from '../stores/TimerStore';
 	import userData from '$lib/stores/UserStore';
 	import { popupStore } from "../stores/popupStore.js";
-	import {setStatusIssue, getStatuses, getMemberships, getIssues} from '$lib/services/apiService.js'
+	import {setStatusIssue } from '$lib/services/apiService.js'
 	import {statusIsChange} from '../stores/statusStore.js';
 	import Dropdown from './Dropdown.svelte';
-	import {availableStatusesForRole} from '../services/getAvailableStatuses'
-
 
 	export let activeItemId = null;
 	export let status = null;
@@ -19,35 +16,6 @@
 	export let showingTicketTimeEntries = () => {};
 
 	const { localApiKey } = $userData;
-
-	let statuses = [
-        {
-            name: 'To do',
-            id: 1,
-        },
-        {
-            name: 'In Progress',
-            id: 2,
-        },
-        {
-            name: 'Closed',
-            id: 5,
-        },
-        {
-            name: 'QA',
-            id: 4,
-			colorBg: 'red',
-			colorText: 'blue'
-        },
-        {
-            name: 'Resolved',
-            id: 3,
-        },
-        {
-            name: 'Estimate',
-            id: 8,
-        },
-	]
 
 	let statusColor = {
 		1: ['white', 'black'],			//	To do
@@ -61,10 +29,6 @@
 	}
 
 	let animationBubble = false;
-
-	onMount(() => {
-		getAvailableStatuses(localApiKey, issue)
-	})
 
 	const ticketItemHandleClick = (e) => {
 		if (handler()) {
@@ -100,27 +64,6 @@
 			})
 		}
 	}
-
-	async function getAvailableStatuses(ApiKey, issue) {
-		let user_id = issue.assigned_to.id
-		let project_id = issue.project.id
-		let ticket_id = issue.id
-		const statusesTrue = await getStatuses(ApiKey)
-		const parents = await getIssues(ApiKey, false, false, false, ticket_id)
-		const membership = await getMemberships(ApiKey, project_id)
-		let parentsIsOpen = false
-		if(parents.total_count)
-			parentsIsOpen = !parents.issues.find(issue => issue.status.id == 5 || issue.status.id == 6)
-		const userMembership = membership.find(membership => membership.user.id === user_id)
-		const userRolesName = userMembership.roles.map(role => role.name)
-		// const userRoleName = ['QA']
-		let allStatuses = new Set()
-		userRolesName.forEach(roleName => availableStatusesForRole[roleName][issue.status.id].forEach(n => allStatuses.add(n)))
-		allStatuses = new Array(...allStatuses)
-		if(parentsIsOpen)
-			allStatuses = allStatuses.filter(status => status != 5 && status != 6)
-		statuses = allStatuses.map(id => statusesTrue.find(status => status.id == id))
-	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -136,7 +79,7 @@
 		<div class='ticketItem__header'>
 			<div class='ticketItem__header-status'>
 				<Dropdown
-					items={statuses}
+					items={issue.available_statuses ?? []}
 					bind:value={issue.status.id}
 					handlerChange={(e) => changeStatus(localApiKey, issue.id, e.target.value, issue.assigned_to.id)}
 					{statusColor}

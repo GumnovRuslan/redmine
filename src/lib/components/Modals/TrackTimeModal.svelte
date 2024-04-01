@@ -4,44 +4,16 @@
 	import Dropdown from '../Dropdown.svelte';
 	import Button from '../Button.svelte';
 	import userData from '$lib/stores/UserStore';
-	import { getEntryActivities, setTimeEntries, setStatusIssue, getStatuses, getMemberships, getIssues } from '$lib/services/apiService';
+	import { getEntryActivities, setTimeEntries, setStatusIssue } from '$lib/services/apiService';
 	import Modal from './Modal.svelte';
 	import TimerStore from '../../stores/TimerStore';
 	import { popupStore } from '$lib/stores/popupStore.js'
-	import {availableStatusesForRole} from '$lib/services/getAvailableStatuses'
 
 	export let timeSpent;
 	export let activeIssue;
 	export let titleHeading = '';
 	export let handler = () => {};
 	export let handlerClose = () => {};
-
-	let statuses = [
-        {
-            name: 'To do',
-            id: 1,
-        },
-        {
-            name: 'In Progress',
-            id: 2,
-        },
-        {
-            name: 'Closed',
-            id: 5,
-        },
-        {
-            name: 'QA',
-            id: 4,
-        },
-        {
-            name: 'Resolved',
-            id: 3,
-        },
-        {
-            name: 'Estimate',
-            id: 8,
-        },
-	]
 
 	const { localApiKey } = $userData;
 
@@ -63,7 +35,6 @@
 	$: errors = {};
 
 	onMount(async function () {
-		getAvailableStatuses(localApiKey, activeIssue)
 		activities = await getEntryActivities(localApiKey).then(res => res.filter(obj => obj.active));
 		activeActivity = activities[0]?.id;
 	});
@@ -118,27 +89,6 @@
 	const validateTimeSpent = (value) => {
 		return value > 0;
 	};
-
-	async function getAvailableStatuses(ApiKey, issue) {
-		let user_id = issue.assigned_to.id
-		let project_id = issue.project.id
-		let ticket_id = issue.id
-		const statusesTrue = await getStatuses(ApiKey)
-		const parents = await getIssues(ApiKey, false, false, false, ticket_id)
-		const membership = await getMemberships(ApiKey, project_id)
-		let parentsIsOpen = false
-		if(parents.total_count)
-			parentsIsOpen = !parents.issues.find(issue => issue.status.id == 5 || issue.status.id == 6)
-		const userMembership = membership.find(membership => membership.user.id === user_id)
-		const userRolesName = userMembership.roles.map(role => role.name)
-		// const userRoleName = ['QA']
-		let allStatuses = new Set()
-		userRolesName.forEach(roleName => availableStatusesForRole[roleName][issue.status.id].forEach(n => allStatuses.add(n)))
-		allStatuses = new Array(...allStatuses)
-		if(parentsIsOpen)
-			allStatuses = allStatuses.filter(status => status != 5 && status != 6)
-		statuses = allStatuses.map(id => statusesTrue.find(status => status.id == id))
-	}
 </script>
 
 {#if !!activities.length}
@@ -146,7 +96,7 @@
 		handleCloseModal={() => handlerClose()}
 		title={`Save spent time on ticket : ${titleHeading}`}
 	>
-		<Dropdown bind:value={activeIssue.status.id} items={statuses} />
+		<Dropdown bind:value={activeIssue.status.id} items={activeIssue.available_statuses} />
 		{#if errors?.date}
 			<p class="TrackTimeModal__error-message">{errors.date.message}</p>
 		{/if}
