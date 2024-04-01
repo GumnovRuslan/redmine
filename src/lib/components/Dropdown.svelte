@@ -3,6 +3,8 @@
 	export let value;
 	export let placeholder = '';
 	export let handlerChange = ''
+	export let statusColor = {}
+	export let style = false
 </script>
 
 <label class="field">
@@ -10,11 +12,14 @@
 		<span class="field__label">{placeholder}</span>
 	{/if}
 	<select class="field__input"
+	class:field__input--second={style == 'second'}
+	style:background={statusColor[value]?.[0] ?? '#fff'}
+	style:color={statusColor[value]?.[1] ?? '#000'}
 	bind:value
 	on:click|stopPropagation={(e) => {}}
 	on:change={handlerChange}>
 		{#each items as { id, name }}
-			<option value={id}>{name}</option>
+			<option class="field__input-item" value={id}>{name}</option>
 		{/each}
 	</select>
 </label>
@@ -34,11 +39,20 @@
 			padding: 5px 10px;
 			appearance: auto;
 			-webkit-appearance: auto;
+			font-weight: 500;
 
 			&:focus,
 			&:active {
 				outline: 0;
 			}
+
+			&--second {
+				border-radius: 10px;
+			}
+		}
+
+		&__input-item {
+			background: #fefefd;
 		}
 
 		&__label {

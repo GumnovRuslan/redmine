@@ -4,6 +4,9 @@
 
 <style lang="scss">
 	.container {
+		display: flex;
+		flex-direction: column;
+		gap: 25px;
 		max-width: 1024px;
 		margin-left: auto;
 		margin-right: auto;

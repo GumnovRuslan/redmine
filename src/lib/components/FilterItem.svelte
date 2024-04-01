@@ -32,6 +32,17 @@
             }
         }
     .active {
-            border-bottom: 1px solid red;
+        position: relative;
+        background: #d4e3ff88;
+
+            // &::after {
+            //     content: '';
+            //     position: absolute;
+            //     left: 0;
+            //     bottom: -4px;
+            //     width: 100%;
+            //     height: 2px;
+            //     background: #000;
+            // }
         }
 </style>

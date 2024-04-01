@@ -12,12 +12,12 @@
             id: 1,
         },
         {
-            name: 'In Progress',
-            id: 2,
+            name: 'Estimate',
+            id: 8,
         },
         {
-            name: 'Closed',
-            id: 5,
+            name: 'In Progress',
+            id: 2,
         },
         {
             name: 'QA',
@@ -28,9 +28,11 @@
             id: 3,
         },
         {
-            name: 'Estimate',
-            id: 8,
+            name: 'Closed',
+            id: 5,
         },
+
+
     ]
 
     let countValue;

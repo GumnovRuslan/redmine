@@ -36,6 +36,8 @@
         {
             name: 'QA',
             id: 4,
+			colorBg: 'red',
+			colorText: 'blue'
         },
         {
             name: 'Resolved',
@@ -46,6 +48,17 @@
             id: 8,
         },
 	]
+
+	let statusColor = {
+		1: ['white', 'black'],			//	To do
+		2: ['#bbdbff', 'black'],	//  In Progress
+		4: ['#ffe7c7f5', 'black'],			//	QA
+		8: ['#fffd95', 'black'],			//	Estimate
+		5: ['#bcfad2', 'black'],			//	Closed
+		3: ['#bcfad2', 'black'],			//	Resolved
+		// 12: ['red', 'black'],		//	Code Review
+		// 6: ['red', 'black'],			//	Rejected
+	}
 
 	let animationBubble = false;
 
@@ -120,18 +133,23 @@
 	class="ticketItem"
 >
 	<div class="ticketItem__wrapper">
-		<div class='ticketItem__status'>
-			<Dropdown
-				items={statuses}
-				value={issue.status.id}
-				handlerChange={(e) => changeStatus(localApiKey, issue.id, e.target.value, issue.assigned_to.id)}
-			/>
+		<div class='ticketItem__header'>
+			<div class='ticketItem__header-status'>
+				<Dropdown
+					items={statuses}
+					bind:value={issue.status.id}
+					handlerChange={(e) => changeStatus(localApiKey, issue.id, e.target.value, issue.assigned_to.id)}
+					{statusColor}
+					style={'second'}
+				/>
+			</div>
+			<p class='ticketItem__header-id'>№ {issue.id}</p>
 		</div>
 
-		<div class="ticketItem__heading">
-			<p class="ticketItem__heading-text ticketItem__heading-title">{issue.subject}</p>
-			<div on:click={handleShowTimeEntries} class="ticketItem__heading-time">
-				<p class="ticketItem__heading-text">{issue.spent_time.toFixed(2)}h</p>
+		<div class="ticketItem__content">
+			<p class="ticketItem__content-text ticketItem__content-title">{issue.subject}</p>
+			<div on:click={handleShowTimeEntries} class="ticketItem__content-time">
+				<p class="ticketItem__content-text">{issue.spent_time.toFixed(2)}h</p>
 				<Icon width="30px" height="30px" name="chevron-down" />
 			</div>
 		</div>
@@ -219,7 +237,21 @@
 			align-items: flex-start;
 		}
 
-		&__heading {
+		&__header {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			justify-content: space-between;
+			width: 100%;
+		}
+
+		&__header-id {
+			font-weight: 500;
+			font-size: 20px;
+			color: #4b71c5;
+		}
+
+		&__content {
 			position: relative;
 			display: flex;
 			align-items: flex-start;
@@ -232,7 +264,7 @@
 			}
 		}
 
-		&__heading-title {
+		&__content-title {
 			padding-right: 30px;
 
 			@media (max-width: 767.02px) {
@@ -240,7 +272,7 @@
 			}
 		}
 
-		&__heading-text {
+		&__content-text {
 			font-weight: 700;
 			color: #000000;
 			cursor: pointer;
@@ -256,7 +288,7 @@
 			}
 		}
 
-		&__heading-time {
+		&__content-time {
 			position: relative;
 			display: flex;
 			align-items: center;

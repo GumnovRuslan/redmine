@@ -25,7 +25,7 @@
 	{#if !isTextArea}
 		<input class="field__input" use:stepAction use:typeAction bind:value />
 	{:else}
-		<textarea class="field__input textarea" />
+		<textarea class="field__input textarea" bind:value/>
 	{/if}
 </label>
 

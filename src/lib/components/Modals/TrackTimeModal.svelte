@@ -155,7 +155,7 @@
 			<p class="TrackTimeModal__error-message">{errors.timeSpent.message}</p>
 		{/if}
 		<Input bind:value={timeSpent} type="number" placeholder="Time spent: (Hours) " />
-		<Input bind:value={comment} isTextArea={true} placeholder="Comment: " />
+		<Input bind:value={comment} isTextArea={true} placeholder="Comment: "  />
 		<Dropdown bind:value={activeActivity} items={activities} placeholder="Activity: " />
 		<Dropdown bind:value={billableActivity} items={billableValue} placeholder="Billable: " />
 
