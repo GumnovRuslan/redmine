@@ -74,7 +74,7 @@
 	</div>
 	<svelte:fragment slot="controls">
 		{#if !!issueTimeEntriesCount && issueTimeEntriesCount > 1}
-			<Pagination bind:currentPage totalPages={issueTimeEntriesCount} {itemsPerPage} />
+			<Pagination bind:currentPage totalPages={issueTimeEntriesCount} />
 		{/if}
 	</svelte:fragment>
 </Modal>
