@@ -47,9 +47,20 @@
 		} else if(statusBull) {}
 		currentId = 1
 	}
+
 	onMount(() => {
+		if (localStorage?.timer) getIssueActive()
 		updateDashboard()
 	});
+
+	async function getIssueActive() {
+		const activityIssueId = JSON.parse(localStorage.timer).taskId
+		const result = await getIssue($userData.localApiKey, activityIssueId)
+		activeIssue = result.issue
+		const statusesPromise = await getAvailableStatuses($userData.localApiKey, activeIssue)
+		const issueStatusesResponse = await Promise.all(statusesPromise);
+		activeIssue.available_statuses = issueStatusesResponse
+	}
 
 	async function updateDashboard() {
 		prevcurrentPage = currentPage;
@@ -109,6 +120,9 @@
 	}
 
 	const handleActiveIssue = (issue) => {
+		// console.log(timeSpent)
+		// console.log(issue?.id)
+		// console.log(activeIssue?.id)
 		if (!!timeSpent && issue?.id != activeIssue?.id) {
 			const confirmText =
 				'Switching ticket clear an existing timer, are you sure you want to switch?';
@@ -171,40 +185,40 @@
 				{/if}
 			{/if}
 			<div class='dashboard__timer'>
-					{#if activeIssue}
-						<Timer
-							activeIssueName={activeIssue.subject}
-							activeIssueId={activeIssue.id}
-							bind:time={timerValue}
-							handle={toggleShowingModal}
-						/>
-					{/if}
+				{#if activeIssue}
+					<Timer
+						activeIssueName={activeIssue.subject}
+						activeIssueId={activeIssue.id}
+						bind:time={timerValue}
+						handle={toggleShowingModal}
+					/>
+				{/if}
 
-					{#if activeIssue && isShowingModal}
-						<TrackTimeModal
-							handler={handleCreateTimeEntry}
-							handlerClose={toggleShowingModal}
-							titleHeading={activeIssue.subject}
-							{timeSpent}
-							{activeIssue}
-						/>
-					{/if}
+				{#if activeIssue && isShowingModal}
+					<TrackTimeModal
+						handler={handleCreateTimeEntry}
+						handlerClose={toggleShowingModal}
+						titleHeading={activeIssue.subject}
+						{timeSpent}
+						{activeIssue}
+					/>
+				{/if}
 
-					{#if activeIssueModal && isShowingTicketDetails}
-						<TicketDetails
-							titleHeading="Issue details"
-							issueId={activeIssueModal.id}
-							handlerClose={toggleTicketDetails}
-						/>
-					{/if}
+				{#if activeIssueModal && isShowingTicketDetails}
+					<TicketDetails
+						titleHeading="Issue details"
+						issueId={activeIssueModal.id}
+						handlerClose={toggleTicketDetails}
+					/>
+				{/if}
 
-					{#if activeIssueModal && isShowingTicketTimeEntries}
-						<TicketTimeEntries
-							titleHeading="Ticket time entries"
-							issueId={activeIssueModal.id}
-							handlerClose={toggleTicketTimeEntries}
-						/>
-					{/if}
+				{#if activeIssueModal && isShowingTicketTimeEntries}
+					<TicketTimeEntries
+						titleHeading="Ticket time entries"
+						issueId={activeIssueModal.id}
+						handlerClose={toggleTicketTimeEntries}
+					/>
+				{/if}
 			</div>
 	</div>
 </div>
